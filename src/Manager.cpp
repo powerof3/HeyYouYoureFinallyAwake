@@ -30,6 +30,7 @@ bool Manager::ShouldHideMainMenu() const
 
 bool Manager::OnPlayerDeath(RE::BGSSaveLoadManager* a_saveLoadManager)
 {
+	logger::info("Player {:X} has died.", a_saveLoadManager->currentCharacterID);
 	DeleteSaves(a_saveLoadManager);
 	if (startNewGameOnDeath) {
 		initNewGame = true;
@@ -74,10 +75,9 @@ void Manager::DeleteSaves(RE::BGSSaveLoadManager* a_saveLoadManager)
 	const auto currentPlayerID = a_saveLoadManager->currentCharacterID;
 
 	if (currentPlayerID == 0) {
+		logger::warn("\tCurrent Player ID is 0, skipping save deletion.");
 		return;
 	}
-
-	logger::info("Deleting saves for character ID: {:X}", currentPlayerID);
 
 	constexpr auto get_save_directory = []() -> std::optional<std::filesystem::path> {
 		if (auto path = logger::log_directory()) {
@@ -108,7 +108,7 @@ void Manager::DeleteSaves(RE::BGSSaveLoadManager* a_saveLoadManager)
 		}
 		
 		for (const auto& save : savesToDelete) {
-			logger::info("\tDeleting {}", save.filename().string());
+			logger::info("\tDeleting save {}", save.filename().string());
 			if (recycleSaves) {
 				RecycleFile(save.wstring());
 			} else {
@@ -126,6 +126,7 @@ RE::BSEventNotifyControl Manager::ProcessEvent(const RE::MenuOpenCloseEvent* a_e
 
 	if (a_event->opening) {
 		if (startNewGameOnDeath && initNewGame) {
+			logger::info("\tRestarting game...");
 			StartNewGame();
 		}
 	} else {

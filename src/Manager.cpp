@@ -99,7 +99,7 @@ void Manager::DeleteSaves(RE::BGSSaveLoadManager* a_saveLoadManager)
 				}
 			}
 		}
-		
+
 		for (const auto& save : savesToDelete) {
 			REX::INFO("\tDeleting save {}", save.filename().string());
 			if (recycleSaves) {

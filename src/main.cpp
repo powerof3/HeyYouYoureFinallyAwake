@@ -1,6 +1,6 @@
 #include "Hooks.h"
-#include "Manager.h"
 #include "ImGui/Renderer.h"
+#include "Manager.h"
 
 void MessageHandler(SKSE::MessagingInterface::Message* a_message)
 {

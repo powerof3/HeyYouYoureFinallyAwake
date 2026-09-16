@@ -61,7 +61,7 @@ SKSE_PLUGIN_QUERY(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
 		> SKSE::RUNTIME_VR_1_4_15_1
 #	endif
 	) {
-		logger::critical(FMT_STRING("Unsupported runtime version {}"), ver.string());
+		REX::CRITICAL("Unsupported runtime version {}", ver);
 		return false;
 	}
 

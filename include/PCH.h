@@ -6,14 +6,13 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 #include "RE/Skyrim.h"
-#include "REX/REX/Singleton.h"
+#include "REX/REX.h"
 #include "SKSE/SKSE.h"
 
 #include <d3d11.h>
 #include <dxgi.h>
 #include <shellapi.h>
 
-#include "ClibUtil/simpleINI.hpp"
 #include <spdlog/sinks/basic_file_sink.h>
 
 #include "imgui_impl_win32.h"
@@ -22,22 +21,17 @@
 #include <imgui_impl_dx11.h>
 #include <imgui_stdlib.h>
 
-#define DLLEXPORT __declspec(dllexport)
+#undef ERROR
 
-namespace logger = SKSE::log;
-
-using namespace clib_util;
 using namespace std::literals;
 using namespace RE::literals;
 
 namespace stl
 {
-	using namespace SKSE::stl;
-
 	template <class T>
 	void write_thunk_call(std::uintptr_t a_src)
 	{
-		auto& trampoline = SKSE::GetTrampoline();
+		auto& trampoline = REL::GetTrampoline();
 		T::func = trampoline.write_call<5>(a_src, T::thunk);
 	}
 

@@ -9,18 +9,11 @@ void Manager::Register()
 
 void Manager::LoadSettings()
 {
-	constexpr auto path = "Data/SKSE/Plugins/po3_HeyYouYoureFinallyAwake.ini";
+	const auto store = REX::FIniSettingStore::GetSingleton();
+	store->Init(path.data(), "");
 
-	CSimpleIniA ini;
-	ini.SetUnicode();
-
-	ini.LoadFile(path);
-
-	ini::get_value(ini, startNewGameOnDeath, "Settings", "bStartNewGameOnDeath", nullptr);
-	ini::get_value(ini, deleteSaves, "Settings", "bDeletePreviousCharacterSaves", nullptr);
-	ini::get_value(ini, recycleSaves, "Settings", "bSendSavesToRecycleBin", nullptr);
-
-	(void)ini.SaveFile(path);
+	store->Load();
+	store->Save();
 }
 
 bool Manager::ShouldHideMainMenu() const
@@ -30,7 +23,7 @@ bool Manager::ShouldHideMainMenu() const
 
 bool Manager::OnPlayerDeath(RE::BGSSaveLoadManager* a_saveLoadManager)
 {
-	logger::info("Player {:X} has died.", a_saveLoadManager->currentCharacterID);
+	REX::INFO("Player {:X} has died.", a_saveLoadManager->currentCharacterID);
 	DeleteSaves(a_saveLoadManager);
 	if (startNewGameOnDeath) {
 		initNewGame = true;
@@ -48,7 +41,7 @@ void Manager::StartNewGame()
 {
 	using func_t = decltype(&StartNewGame);
 	static REL::Relocation<func_t> func{ RELOCATION_ID(51246, 52118) };
-	return func();
+	func();
 }
 
 // https://stackoverflow.com/questions/70257751/move-a-file-or-folder-to-the-recyclebin-trash-c17
@@ -75,12 +68,12 @@ void Manager::DeleteSaves(RE::BGSSaveLoadManager* a_saveLoadManager)
 	const auto currentPlayerID = a_saveLoadManager->currentCharacterID;
 
 	if (currentPlayerID == 0) {
-		logger::warn("\tCurrent Player ID is 0, skipping save deletion.");
+		REX::WARN("\tCurrent Player ID is 0, skipping save deletion.");
 		return;
 	}
 
 	constexpr auto get_save_directory = []() -> std::optional<std::filesystem::path> {
-		if (auto path = logger::log_directory()) {
+		if (auto path = SKSE::log::log_directory()) {
 			path->remove_filename();  // remove "/SKSE"
 			path->append("sLocalSavePath:General"_ini.value());
 			return path;
@@ -98,8 +91,8 @@ void Manager::DeleteSaves(RE::BGSSaveLoadManager* a_saveLoadManager)
 
 		for (const auto& entry : std::filesystem::directory_iterator(*saveDirectory)) {
 			if (entry.exists() && entry.path().extension() == ".ess") {
-				if (const auto save = string::split(entry.path().filename().string(), "_"); save.size() == 9) {
-					const auto saveID = string::to_num<std::uint64_t>(save[1], true);
+				if (const auto save = REX::STR::SPLIT(entry.path().filename().string(), "_"); save.size() == 9) {
+					const auto saveID = REX::STR::TO_NUM<std::uint64_t>(save[1], true);
 					if (saveID == currentPlayerID) {
 						savesToDelete.push_back(entry.path());
 					}
@@ -108,11 +101,11 @@ void Manager::DeleteSaves(RE::BGSSaveLoadManager* a_saveLoadManager)
 		}
 		
 		for (const auto& save : savesToDelete) {
-			logger::info("\tDeleting save {}", save.filename().string());
+			REX::INFO("\tDeleting save {}", save.filename().string());
 			if (recycleSaves) {
 				RecycleFile(save.wstring());
 			} else {
-				std::filesystem::remove(save);
+				std::filesystem::remove(save, ec);
 			}
 		}
 	}
@@ -126,7 +119,7 @@ RE::BSEventNotifyControl Manager::ProcessEvent(const RE::MenuOpenCloseEvent* a_e
 
 	if (a_event->opening) {
 		if (startNewGameOnDeath && initNewGame) {
-			logger::info("\tRestarting game...");
+			REX::INFO("\tRestarting game...");
 			StartNewGame();
 		}
 	} else {

@@ -1,7 +1,7 @@
 #pragma once
 
 class Manager :
-	public REX::Singleton<Manager>,
+	public REX::TSingleton<Manager>,
 	public RE::BSTEventSink<RE::MenuOpenCloseEvent>
 {
 public:
@@ -22,9 +22,12 @@ private:
 	RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* a_event, RE::BSTEventSource<RE::MenuOpenCloseEvent>* a_eventSource) override;
 
 	// members
-	bool                                 startNewGameOnDeath{ true };
-	bool                                 deleteSaves{ true };
-	bool                                 recycleSaves{ true };
+	static constexpr auto path = R"(Data\SKSE\Plugins\po3_HeyYouYoureFinallyAwake.ini)"sv;
+
+	REX::TIniSetting<bool> startNewGameOnDeath{ "Settings", "bStartNewGameOnDeath", true };
+	REX::TIniSetting<bool> deleteSaves{ "Settings", "bDeletePreviousCharacterSaves", true };
+	REX::TIniSetting<bool> recycleSaves{ "Settings", "bSendSavesToRecycleBin", true };
+
 	bool                                 initNewGame{ false };
 	std::optional<std::filesystem::path> saveDirectory;
 };
